@@ -22,6 +22,18 @@ No test framework is installed — there is no test command to run.
 ./DevOps/Local/docker-all-down.sh    # stop services, data preserved
 ```
 
+## Database
+
+`db/` holds the persistence layer: `schema.ts` (exercises, workouts, sets), `index.ts` (the shared Drizzle client), `env.ts` (`DATABASE_URL` validation). Reachable as `@/db`.
+
+- **Migrations are generated and committed.** `npm run db:generate` writes SQL into `drizzle/`; `npm run db:migrate` applies it. **`drizzle-kit push` is not used and no `db:push` script exists** — it diffs onto the database with no reviewable artifact.
+- **`db/index.ts` and `db/env.ts` import `server-only`.** Importing `@/db` from a `"use client"` module fails the build by design; that is a spec requirement, not an accident.
+- **`@neondatabase/serverless` is installed but intentionally unreferenced.** It exists so adopting a managed host later is a wiring change in `db/index.ts` rather than a dependency negotiation. Do not delete it as dead weight, and do not mistake it for the active driver — that is `node-postgres` (`pg`).
+- **Interactive transactions work** (`db.transaction()`), because the driver is `node-postgres`. Neon's HTTP driver cannot do them, so switching drivers would break transactional code at runtime only. `add-credentials-auth-provider` depends on this capability.
+- **`weight` uses `numeric(6,2)` with `mode: "number"`**, so it surfaces as a JS number rather than Drizzle's default string. Keep numeric columns on one mode; mixing them is how concatenation bugs appear.
+- **`created_at` is immutable and database-assigned**, enforced by triggers in `drizzle/0001_created_at_immutable.sql` — a caller-supplied value is overwritten on insert and preserved on update. A `DEFAULT` alone does not do this. **drizzle-kit does not model triggers**, so `db:generate` will neither reproduce nor drop them; changing them means writing another `drizzle-kit generate --custom` migration.
+- Ownership is enforced only by `where eq(table.userId, ...)` in queries. No database mechanism catches a missing predicate.
+
 ## Local development stack
 
 `DevOps/Local/` holds the containerised backing services, **one directory per service** (`DevOps/Local/Postgres/docker-compose.yaml`). The three lifecycle scripts discover services by globbing `DevOps/Local/*/docker-compose.yaml`, so adding a service requires no script change.

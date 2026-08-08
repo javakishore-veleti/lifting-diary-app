@@ -37,7 +37,7 @@ Postgres               running, healthy           127.0.0.1:5432->5432/tcp
 
 ### Database connection string
 
-Set this in `.env.local`:
+Copy `.env.example` to `.env` and keep this value:
 
 ```sh
 DATABASE_URL=postgresql://lifting_diary:local_dev_only@localhost:5432/lifting_diary
@@ -46,6 +46,23 @@ DATABASE_URL=postgresql://lifting_diary:local_dev_only@localhost:5432/lifting_di
 These credentials are committed in `DevOps/Local/Postgres/docker-compose.yaml` on purpose, so the stack is reproducible from a clone with no setup step. They are safe only because the port is bound to `127.0.0.1` and unreachable from outside this machine. **Never reuse them for a deployed database.**
 
 The port and credentials are fixed and survive restarts, so this string is written once and keeps working.
+
+### Apply database migrations
+
+With the stack up and `DATABASE_URL` set:
+
+```sh
+npm run db:migrate     # apply committed migrations
+```
+
+Running it again is a safe no-op. After changing `db/schema.ts`:
+
+```sh
+npm run db:generate    # emit a new SQL migration into drizzle/
+npm run db:migrate     # apply it
+```
+
+Generated migrations in `drizzle/` are committed and reviewed like any other code. `drizzle-kit push` is deliberately not used — it diffs the schema straight onto the database with no artifact, making changes invisible in review and unrepeatable.
 
 ### Stopping and destroying data
 
