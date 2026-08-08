@@ -22,6 +22,18 @@ No test framework is installed — there is no test command to run.
 ./DevOps/Local/docker-all-down.sh    # stop services, data preserved
 ```
 
+## UI
+
+`components/ui/` is **generated shadcn source, owned by this project** — committed, edited here, and never updated by `npm update`. Regenerating is a deliberate act (`npx shadcn@latest add <name>`), and upstream fixes do not arrive on their own. Treat it as vendored code: read it on arrival, then leave it alone unless a feature needs a change.
+
+- **This project uses shadcn v4 with the `radix-nova` base.** The bare `form` component does not exist here — its registry entry has no files, so `shadcn add form` reports success and creates nothing. Use `@shadcn/field` (`Field`, `FieldLabel`, `FieldError`) instead.
+- **`field` provides accessible markup, not validation.** `react-hook-form`, `zod`, and `@hookform/resolvers` are installed explicitly rather than arriving transitively as they did via the old `form` component. `FieldError` takes an `errors` array shaped like react-hook-form's, so build forms as `Field` + react-hook-form + a zod resolver.
+- Namespaced names (`@shadcn/<item>`) are more reliable than bare names under a non-default base.
+- **Dark mode is class-based via `next-themes`.** `prefers-color-scheme` must not be reintroduced into `app/globals.css` — the class strategy and a media query together mean an explicit light choice still renders dark on a dark-set OS. Tailwind v4 resolves `dark:` through `@custom-variant dark` in that file.
+- `suppressHydrationWarning` on `<html>` in `app/layout.tsx` is load-bearing. The server cannot know the client's stored theme, so removing it produces a hydration error on every load.
+- **`--font-sans` must point at `--font-geist-sans`.** `shadcn init` emitted a self-referential `--font-sans: var(--font-sans)`, which resolves to nothing and silently falls back to the browser default. Re-running init may reintroduce it.
+- Clerk is themed through `appearance` variables on `<ClerkProvider>` pointing at the shadcn tokens, so it follows the active scheme without reading the theme. Do not style Clerk via its internal class names — they break on Clerk updates.
+
 ## Database
 
 `db/` holds the persistence layer: `schema.ts` (exercises, workouts, sets), `index.ts` (the shared Drizzle client), `env.ts` (`DATABASE_URL` validation). Reachable as `@/db`.

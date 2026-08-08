@@ -46,7 +46,7 @@
 
 ## 6. Credentials interfaces at Clerk's locations
 
-- [ ] 6.1 Create the credentials sign-in form in `components/auth/`, using shadcn components if `add-shadcn-ui-foundation` has landed
+- [ ] 6.1 Create the credentials sign-in form in `components/auth/`. Build it as `Field` + `FieldLabel` + `FieldError` from `components/ui/field.tsx`, driven by `react-hook-form` with a `zod` resolver — all installed by `add-shadcn-ui-foundation`. Do **not** reach for a `form` component: shadcn v4's `radix-nova` base ships none, and `shadcn add form` is a silent no-op
 - [ ] 6.2 Create the credentials registration form with the password policy stated in the interface, not only on rejection
 - [ ] 6.3 Create the forgot-password request form and the reset form
 - [ ] 6.4 Make `app/sign-in/[[...sign-in]]/page.tsx` render Clerk's `<SignIn />` or the credentials form based on the flag, as a Server Component

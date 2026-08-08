@@ -86,13 +86,21 @@ The hand-written purple Sign Up button is replaced by the shared button componen
 
 ### Component set scoped to demonstrated need
 
-Generate: `button`, `input`, `label`, `form`, `card`, `table`, `dialog`, `select`, `sonner`.
+Generate: `button`, `input`, `label`, `field`, `card`, `table`, `dialog`, `select`, `sonner`, `dropdown-menu`.
 
 Each maps to an interaction pattern named in `specs/design-system/spec.md`. Generating the full catalogue would fill `components/ui/` with unreviewed source that no screen exercises, and every file there is code this project now owns.
 
 `sonner` is shadcn's current toast; the older `toast` component is deprecated upstream.
 
-`form` pulls in `react-hook-form` and `zod`. That is a meaningful dependency addition justified by the spec's accessible-error requirements — field-to-error association, invalid state exposure, and clearing on correction are exactly what the wrapper provides, and hand-rolling them accessibly is more work than it appears.
+**Revised during implementation: `field` replaces `form`, and the validation libraries are installed separately.**
+
+This change originally specified `form`, on the assumption that it pulls in `react-hook-form` and `zod`. That is not true of shadcn v4 under the `radix-nova` base: the `form` registry entry exists but ships **no files**, so `shadcn add form` completes successfully and creates nothing — a silent no-op rather than an error. Its successor is `field`, which provides `Field`, `FieldLabel`, `FieldError` (rendering `role="alert"`) and `data-invalid` styling, and depends on `label` and `separator`.
+
+`field` supplies the accessible *markup* but no validation, so `react-hook-form`, `zod`, and `@hookform/resolvers` are installed explicitly rather than arriving as transitive dependencies. The spec's accessible-error requirements — field-to-error association, invalid state exposure, clearing on correction — still need a form library driving them; `FieldError` accepts an `errors` array shaped exactly like react-hook-form's, so the two compose directly.
+
+*Consequence.* The dependency footprint is the same as originally planned; only the route to it changed, and it is now explicit rather than implicit. `add-credentials-auth-provider` plans four forms against `form` and must be updated to build them from `Field` + react-hook-form instead.
+
+*Also generated:* `dropdown-menu`, which the theme toggle needs for its three-option menu. Not in the original list, since the toggle's shape was decided in the same design that fixed the component set.
 
 ### The landing page as the proof
 

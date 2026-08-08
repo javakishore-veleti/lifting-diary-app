@@ -8,7 +8,7 @@ The app also currently presents two visual languages at once: Clerk's stock comp
 
 - Adopt shadcn/ui as the component foundation: components are generated into the repository as owned source, not consumed from a versioned package.
 - Replace the placeholder theme tokens in `app/globals.css` with the full shadcn token set, wired through Tailwind v4's CSS-first configuration. **BREAKING** for existing markup: the current `--background`/`--foreground` pair is superseded, and any class referencing the old tokens must be updated.
-- Add the baseline component set the product needs first: button, input, label, form, card, table, dialog, select, and toast notifications.
+- Add the baseline component set the product needs first: button, input, label, field, card, table, dialog, select, dropdown menu, and toast notifications. (`field` rather than `form`: shadcn v4's `radix-nova` base ships no `form` component — see design.md.)
 - Add class-based dark mode with a user-facing toggle, defaulting to the operating system preference and remembering an explicit choice across visits. This supersedes the current `prefers-color-scheme`-only behaviour, which users cannot override.
 - Theme Clerk's components so sign-in, sign-up, and the user button adopt the same tokens and follow the active color scheme, and replace the hand-rolled purple Sign Up button in the header with the shared button component.
 - Replace the `create-next-app` template content in `app/page.tsx` with a real screen built from the new components, proving the foundation works end to end.
@@ -26,7 +26,7 @@ None. Neither `data-persistence` nor `training-log` (proposed in `add-drizzle-db
 
 ## Impact
 
-**Dependencies added:** `next-themes` for color scheme management; `lucide-react` for icons; the utility packages shadcn's `init` installs for component styling (`clsx`, `tailwind-merge`, `class-variance-authority`), plus Radix UI primitives pulled in per component. `shadcn` itself is a code generator invoked with `npx`, not a runtime dependency.
+**Dependencies added:** `next-themes` for color scheme management; `lucide-react` for icons; the utility packages shadcn's `init` installs for component styling (`clsx`, `tailwind-merge`, `class-variance-authority`, `tw-animate-css`), plus the `radix-ui` primitives package. `react-hook-form`, `zod`, and `@hookform/resolvers` are installed **explicitly** — under shadcn v4 they no longer arrive transitively via a `form` component, because that component ships no files in this base. `shadcn` itself is a code generator invoked with `npx`, so it belongs in devDependencies; `init` installs it as a runtime dependency and this change moves it.
 
 **New code:** `components/ui/` (generated component source), `lib/utils.ts`, `components.json`, a theme provider, and a theme toggle component.
 
