@@ -33,6 +33,11 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# ...but .env.example documents the required variables and MUST be committed.
+# It carries placeholders only, never real values. Without this negation the
+# broad .env* rule above swallows it silently.
+!.env.example
+
 # vercel
 .vercel
 
