@@ -1,0 +1,67 @@
+# Local development Postgres for lifting-diary-app.
+#
+# ---------------------------------------------------------------------------
+# THE CREDENTIALS BELOW ARE FOR LOCAL DEVELOPMENT ONLY.
+#
+# They are committed deliberately so that the stack is reproducible from a
+# clone with no setup step. They are safe only because the port is bound to
+# 127.0.0.1, so nothing outside this machine can reach the database.
+#
+# NEVER reuse these values for a deployed, shared, or internet-reachable
+# database. A real host needs generated credentials kept out of version
+# control entirely.
+# ---------------------------------------------------------------------------
+#
+# Every service added under DevOps/Local/ MUST define a healthcheck. The
+# lifecycle scripts rely on `docker compose up --wait`, which has nothing to
+# wait on without one -- a service lacking a healthcheck silently loses the
+# readiness guarantee for the whole stack.
+
+name: lifting-diary-postgres
+
+services:
+  postgres:
+    # Pinned to a major tag, never `latest`. Postgres major versions cannot
+    # read a data directory initialised by an older major, and the container
+    # fails to start with an error that does not obviously say so. Changing
+    # this tag therefore requires destroying the volume:
+    #   ./DevOps/Local/docker-all-down.sh --destroy-data
+    #
+    # 17 satisfies the >= 13 requirement for gen_random_uuid().
+    image: postgres:17
+    container_name: lifting-diary-postgres
+
+    environment:
+      POSTGRES_USER: lifting_diary
+      POSTGRES_PASSWORD: local_dev_only
+      POSTGRES_DB: lifting_diary
+
+    ports:
+      # Bound explicitly to loopback rather than 0.0.0.0, so the database is
+      # not published to the local network.
+      - "127.0.0.1:5432:5432"
+
+    volumes:
+      # A named volume rather than a host bind mount: avoids file-ownership
+      # and performance problems on macOS, and keeps database files out of the
+      # repository tree where git or an editor's file watcher could reach them.
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      # Both -U and -d are named on purpose. Without them pg_isready only
+      # checks that the server responds, which can pass while the target
+      # database does not yet exist during first-time initialisation --
+      # precisely the window this healthcheck exists to close.
+      test: ["CMD-SHELL", "pg_isready -U lifting_diary -d lifting_diary"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+    # Comes back after a Docker restart, but stays down once stopped
+    # deliberately via docker-all-down.sh.
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    name: lifting-diary-postgres-data
