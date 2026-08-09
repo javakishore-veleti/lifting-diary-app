@@ -1,22 +1,22 @@
 ## 1. Confirm prerequisites
 
-- [ ] 1.1 Confirm `add-drizzle-db-setup` is implemented — Drizzle, the Postgres connection, and `npm run db:generate` / `db:migrate` must all work before auth tables can exist
-- [ ] 1.2 Confirm `add-auth-route-protection` is implemented — this change extends its `/sign-in` and `/sign-up` routes, its `lib/auth.ts`, and its `proxy.ts` protection rather than creating parallel versions
-- [ ] 1.3 If either is unimplemented, stop and land it first; building against a guessed shape means reworking this change afterwards
-- [ ] 1.4 Verify Clerk still works end to end before changing anything, establishing the baseline this change must not break
+- [x] 1.1 Confirm `add-drizzle-db-setup` is implemented — Drizzle, the Postgres connection, and `npm run db:generate` / `db:migrate` must all work before auth tables can exist
+- [x] 1.2 Confirm `add-auth-route-protection` is implemented — this change extends its `/sign-in` and `/sign-up` routes, its `lib/auth.ts`, and its `proxy.ts` protection rather than creating parallel versions
+- [x] 1.3 If either is unimplemented, stop and land it first; building against a guessed shape means reworking this change afterwards
+- [x] 1.4 Verify Clerk still works end to end before changing anything, establishing the baseline this change must not break
 
 ## 2. Provider resolution
 
-- [ ] 2.1 Create `lib/provider.ts` reading `AUTH_PROVIDER`, accepting `clerk` and `credentials`, defaulting to `clerk` when unset
-- [ ] 2.2 Throw at startup on an unrecognised value, naming the variable and listing accepted values
-- [ ] 2.3 Do **not** use a `NEXT_PUBLIC_` name — it would inline into the client bundle at build time and freeze the provider at build rather than per environment
-- [ ] 2.4 Validate the selected provider's required configuration at startup: Clerk keys for `clerk`; `DATABASE_URL` and the Resend key for `credentials`
-- [ ] 2.5 Confirm there is no fallback path — an invalid configuration must prevent startup, never start with authentication disabled
-- [ ] 2.6 Verify: set `AUTH_PROVIDER=credentials` with no Resend key and confirm startup fails naming it
+- [x] 2.1 Create `lib/provider.ts` reading `AUTH_PROVIDER`, accepting `clerk` and `credentials`, defaulting to `clerk` when unset
+- [x] 2.2 Throw at startup on an unrecognised value, naming the variable and listing accepted values
+- [x] 2.3 Do **not** use a `NEXT_PUBLIC_` name — it would inline into the client bundle at build time and freeze the provider at build rather than per environment
+- [x] 2.4 Validate the selected provider's required configuration at startup: Clerk keys for `clerk`; `DATABASE_URL` and the Resend key for `credentials`
+- [x] 2.5 Confirm there is no fallback path — an invalid configuration must prevent startup, never start with authentication disabled
+- [x] 2.6 Verify: set `AUTH_PROVIDER=credentials` with no Resend key and confirm startup fails naming it
 
 ## 3. Auth tables and migration
 
-- [ ] 3.1 Install `better-auth` and its Drizzle adapter
+- [x] 3.1 Install `better-auth` and its Drizzle adapter
 - [ ] 3.2 Generate Better Auth's table definitions into `db/schema.ts` so they share one migration history with the training tables
 - [ ] 3.3 Run `npm run db:generate` and review the generated SQL by hand
 - [ ] 3.4 Run `npm run db:migrate` and confirm the auth tables exist
