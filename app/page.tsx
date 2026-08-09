@@ -1,5 +1,6 @@
-import { Show, SignUpButton } from "@clerk/nextjs";
+import { Show } from "@clerk/nextjs";
 import { Dumbbell } from "lucide-react";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -49,9 +50,9 @@ export default function Home() {
             recording sessions.
           </CardContent>
           <CardFooter>
-            <SignUpButton>
-              <Button className="w-full">Get started</Button>
-            </SignUpButton>
+            <Button className="w-full" asChild>
+              <Link href="/sign-up">Get started</Link>
+            </Button>
           </CardFooter>
         </Card>
       </Show>

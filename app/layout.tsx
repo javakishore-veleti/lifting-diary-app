@@ -1,12 +1,7 @@
 import type { Metadata } from "next";
-import {
-  ClerkProvider,
-  Show,
-  SignInButton,
-  SignUpButton,
-  UserButton,
-} from "@clerk/nextjs";
+import { ClerkProvider, Show, UserButton } from "@clerk/nextjs";
 import { Geist, Geist_Mono } from "next/font/google";
+import Link from "next/link";
 
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -68,17 +63,28 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           enableSystem
           disableTransitionOnChange
         >
-          <ClerkProvider appearance={clerkAppearance}>
+          {/* afterSignOutUrl is set here rather than on <UserButton>, which
+              does not accept it in Clerk 7. Signing out lands on "/", a route
+              reachable without a session -- the default would leave the user
+              on a protected page they can no longer load. */}
+          <ClerkProvider appearance={clerkAppearance} afterSignOutUrl="/">
             <header className="flex justify-end items-center gap-2 h-16 px-4 border-b">
+              {/* Links to the dedicated routes rather than modal triggers.
+                  Modals have no notion of a remembered destination, so mixing
+                  both would give deep links different behaviour depending on
+                  which control the user happened to use. */}
               <Show when="signed-out">
-                <SignInButton>
-                  <Button variant="ghost">Sign in</Button>
-                </SignInButton>
-                <SignUpButton>
-                  <Button>Sign up</Button>
-                </SignUpButton>
+                <Button variant="ghost" asChild>
+                  <Link href="/sign-in">Sign in</Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/sign-up">Sign up</Link>
+                </Button>
               </Show>
               <Show when="signed-in">
+                {/* Sign out lands on a route reachable without a session --
+                    the default would leave the user on a protected page they
+                    can no longer load, which presents as an abrupt redirect. */}
                 <UserButton />
               </Show>
               <ThemeToggle />

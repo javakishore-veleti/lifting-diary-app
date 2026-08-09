@@ -22,6 +22,17 @@ No test framework is installed — there is no test command to run.
 ./DevOps/Local/docker-all-down.sh    # stop services, data preserved
 ```
 
+## Authentication and access control
+
+Clerk owns identity. `proxy.ts` (not `middleware.ts` — Next 16 renames it) enforces route access; `lib/auth.ts` is the only source of user identity for server code.
+
+- **Routes are protected by default.** `proxy.ts` matches against a public list — `/`, `/sign-in(.*)`, `/sign-up(.*)` — and calls `auth.protect()` on everything else. A new route is protected until deliberately opened. **To make a route public, add it to that list**; there is nowhere else to do it.
+- **Keep the `(.*)` suffixes on the auth patterns.** Clerk routes verification, second-factor, and password-reset steps through sub-paths. Without them the sign-in flow redirects to itself — an endless reload that only appears on multi-step flows, never on a plain sign-in.
+- **Never narrow `config.matcher` to only protected paths.** It decides whether middleware runs at all; Clerk needs it on public routes to populate `<Show>` and `auth()`, and it governs `/__clerk/`. Protection goes in the middleware body.
+- **Every Server Action and route handler must call `requireUserId()` as its first statement.** Middleware guards navigations, not these — they post to the page's own path and can be invoked directly. This is the layer that actually protects data, and its absence is invisible in browser testing because pages still redirect correctly.
+- **Server code obtains identity only from `lib/auth.ts`** — never from request parameters, body, or headers. `requireUserId()` returns `Promise<string>` rather than `string | null` precisely so no call site can coerce a null into an empty owner and silently query the wrong rows. Use `getOptionalUserId()` when branching on session presence.
+- Clerk redirects are configured by environment variable. Use the **`_FALLBACK_REDIRECT_URL`** variables, never `_FORCE_REDIRECT_URL`: forced redirects override a remembered destination and silently break deep linking while still passing a casual sign-in test.
+
 ## UI
 
 `components/ui/` is **generated shadcn source, owned by this project** — committed, edited here, and never updated by `npm update`. Regenerating is a deliberate act (`npx shadcn@latest add <name>`), and upstream fixes do not arrive on their own. Treat it as vendored code: read it on arrival, then leave it alone unless a feature needs a change.
